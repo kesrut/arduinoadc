@@ -19,7 +19,7 @@ class measure_thread(threading.Thread):
         global cnt
         global thread_work
         while thread_work:
-            print "Data cout:" + str(cnt)
+            print "Data count:" + str(cnt)
             cnt = 0
             time.sleep(1)
 
@@ -50,14 +50,16 @@ while True:
                     low = s.read(1)
                     high = s.read(1)
                     value = (ord(high[0]) * 256) + ord(low[0])
+                    #print value
                     cnt += 1
-                    if (value == 0):
-                        t = True
-                    if (t == True):
-                        if (value != k):
-                            print 'FAIL: ' + value + ' ' + k    
-                    k += 1
-                    if (k == 1024):
-                        k = 0 
+                    #if (t == False):
+                    #    k = value
+                    #    t = True
+                    #if (t == True):
+                    #    if (value != k):
+                    #        print 'FAIL: ' + str(value) + ' ' + str(k)    
+                    #k += 1
+                    #if (k == 1024):
+                    #    k = 0 
                     i += 1
                 end_code = s.read(1)

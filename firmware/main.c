@@ -12,8 +12,9 @@
 #include "main.h"
 
 #define DEBUG 1
+//#define ADC_DEBUG 1
 #define FOSC 16000000UL
-#define BAUD 19200
+#define BAUD 38400
 #define BAUDRATE ((FOSC)/(BAUD*16UL)-1)
 #define QUEUE_SIZE 128 
 #define true 1
@@ -111,6 +112,16 @@ void timer_init(unsigned int freq)
     sei();
 }
 
+void uart_timer_init(float freq)
+{
+	float count = ((FOSC / 256.0) * (float)freq) - 1 ;
+	OCR2A = (int) count ;
+	TCCR2A |= (1 << WGM21);
+	TCCR2B |= (1 << CS21) | (1 << CS22);
+	TIMSK2 |= (1 << OCIE2A);
+	sei();
+}
+
 void usart_init()
 {
     UBRR0H = (unsigned char)(BAUDRATE>>8);
@@ -148,7 +159,8 @@ int main(void)
     state = RUNNING ; 
     packet_state = PACKET_START ; 
     adc_init() ; 
-    timer_init(1000) ;  
+    timer_init(1000) ; 
+	uart_timer_init(0.0005) ; 
     while (1)
     {
        /*
@@ -174,6 +186,26 @@ ISR (TIMER1_COMPA_vect)
     {
         ADCSRA |= (1 << ADSC);
     }
+}
+
+volatile unsigned short k = 0 ;
+	
+ISR(ADC_vect)
+{
+   volatile unsigned short low = ADCL ; 
+   volatile unsigned short high = ADCH ; 
+   adc_value = (high << 8) + low ; 
+#ifdef ADC_DEBUG
+   add(k) ;
+   k++ ;
+   if (k == 1024) k = 0 ;
+#else
+   add(adc_value) ; 
+#endif
+}
+
+ISR (TIMER2_COMPA_vect)
+{
     if (packet_state == PACKET_START)
     {
         usart_transmit(PACKET_START_MAGIC) ;
@@ -217,12 +249,4 @@ ISR (TIMER1_COMPA_vect)
         packet_state = PACKET_DATA ;
         return ;  
     }
-}
-
-ISR(ADC_vect)
-{
-   volatile unsigned short low = ADCL ; 
-   volatile unsigned short high = ADCH ; 
-   adc_value = (high << 8) + low ; 
-   add(adc_value) ; 
 }

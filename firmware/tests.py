@@ -26,11 +26,12 @@ while True:
                     low = s.read(1)
                     high = s.read(1)
                     value = (ord(high[0]) * 256) + ord(low[0])
-                    if (value == 0):
+                    if (t == False):
+                        k = value
                         t = True
                     if (t == True):
                         if (value != k):
-                            print 'FAIL: ' + value + ' ' + k    
+                            print 'FAIL: ' + str(value) + ' ' + str(k)    
                     k += 1
                     if (k == 1024):
                         k = 0 
